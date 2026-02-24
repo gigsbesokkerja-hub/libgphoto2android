@@ -1,12 +1,12 @@
 name: Build libgphoto2 for Android
-on: [workflow_dispatch] # Tombol manual untuk menjalankan
+on: [workflow_dispatch] 
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Menggunakan server Linux gratis dari GitHub
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build dengan Docker
         run: |
@@ -16,7 +16,7 @@ jobs:
           docker rm gphoto_temp
 
       - name: Simpan Hasil (Upload Artifact)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: file-so-android-ku
+          name: libgphoto2-android-so
           path: ./hasil_so/
