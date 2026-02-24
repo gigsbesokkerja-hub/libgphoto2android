@@ -1,4 +1,4 @@
-name: Build libgphoto2 for Android
+name: Dapatkan File SO
 on: [workflow_dispatch] 
 
 jobs:
@@ -8,29 +8,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Siapkan Android NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
+      - name: Setup Java (Untuk mesin Android)
+        uses: actions/setup-java@v4
         with:
-          ndk-version: r25c # Versi NDK yang stabil
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Mulai Rakit Library
+      - name: Jalankan Build Android (Jika ada)
         run: |
-          # Hubungkan sistem NDK
-          export NDK_PATH=${{ steps.setup-ndk.outputs.ndk-path }}
-          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
-          export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug || echo "Build log selesai. Melanjutkan pencarian file..."
+          else
+            echo "Tidak ada gradlew. Langsung mencari file .so bawaan..."
+          fi
+
+      - name: Sisir dan Kumpulkan Semua File .so
+        run: |
+          mkdir -p hasil_so
           
-          # Beri izin jalankan skrip
-          chmod +x *.sh
+          # Cari semua file .so dan pertahankan nama folder arsitekturnya (arm64-v8a, dll)
+          find . -name "*.so" | while read file; do
+            arch_folder=$(basename $(dirname "$file"))
+            mkdir -p "hasil_so/$arch_folder"
+            cp "$file" "hasil_so/$arch_folder/"
+          done
           
-          # Eksekusi skrip bawaan dari repositori
-          ./build.sh
+          echo "Daftar file yang berhasil ditemukan:"
+          ls -R hasil_so
 
       - name: Simpan Hasil (Upload Artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: libgphoto2-android-so
-          path: |
-            libs/
-            build/
+          name: file-so-kamera
+          path: hasil_so/
