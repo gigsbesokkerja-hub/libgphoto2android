@@ -8,15 +8,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Build dengan Docker
+      - name: Siapkan Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c # Versi NDK yang stabil
+
+      - name: Mulai Rakit Library
         run: |
-          docker build -t libgphoto2-android-build .
-          docker create --name gphoto_temp libgphoto2-android-build
-          docker cp gphoto_temp:/build/output ./hasil_so
-          docker rm gphoto_temp
+          # Hubungkan sistem NDK
+          export NDK_PATH=${{ steps.setup-ndk.outputs.ndk-path }}
+          export ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}
+          export ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}
+          
+          # Beri izin jalankan skrip
+          chmod +x *.sh
+          
+          # Eksekusi skrip bawaan dari repositori
+          ./build.sh
 
       - name: Simpan Hasil (Upload Artifact)
         uses: actions/upload-artifact@v4
         with:
           name: libgphoto2-android-so
-          path: ./hasil_so/
+          path: |
+            libs/
+            build/
