@@ -10,26 +10,29 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Java
+      - name: Fase 1 - Setup Java 17 (Khusus untuk Download NDK)
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Paksa Eksekusi NDK Lawas (Versi 21)
         run: |
-          # 1. Hapus paksa NDK baru yang galak dari server GitHub
+          # Hapus NDK versi baru yang galak
           rm -rf $ANDROID_HOME/ndk/*
           
-          # 2. Install NDK 21 (ramah dengan kode C lama) ke folder sistem resmi Android
+          # Install NDK 21 dengan Java 17
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;21.4.7075529"
           
-          # 3. Suntikkan kode paksaan langsung ke dalam file build.gradle
+          # Suntikkan versi NDK ke file konfigurasi
           echo "" >> camera/build.gradle
           echo "android { ndkVersion \"21.4.7075529\" }" >> camera/build.gradle
-          
-          echo "" >> app/build.gradle
-          echo "android { ndkVersion \"21.4.7075529\" }" >> app/build.gradle
+
+      - name: Fase 2 - Turunkan ke Java 11 (Khusus untuk Compile Gradle)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
 
       - name: Mulai Kompilasi Android (Gradle)
         run: |
