@@ -3,30 +3,34 @@ on: [workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # KUNCI UTAMANYA ADA DI BARIS INI: Kita mundur ke Ubuntu lawas
+    runs-on: ubuntu-20.04 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup Java
+      - name: Setup Java 11 (Bawaan Era 2020)
         uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
 
-      - name: Jinakkan Compiler C++ (Suntik Anti-Error)
+      - name: Setup NDK Lawas (r21e)
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Kunci Konfigurasi NDK
         run: |
-          echo "Menghapus aturan ketat -Werror bawaan..."
-          find . -type f -name "CMakeLists.txt" -exec sed -i 's/-Werror//g' {} +
+          echo "ndk.dir=${{ steps.setup-ndk.outputs.ndk-path }}" > local.properties
+          echo "sdk.dir=$ANDROID_HOME" >> local.properties
           
-          echo "Menyuntikkan pemakluman kode C lawas ke seluruh file CMake..."
-          RELAX_C="set(CMAKE_C_FLAGS \"\${CMAKE_C_FLAGS} -Wno-error -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-int-conversion -Wno-pedantic -Wno-sign-compare -Wno-sign-conversion\")"
-          find . -name "CMakeLists.txt" -exec sed -i "1i $RELAX_C" {} \;
-          
-          RELAX_CXX="set(CMAKE_CXX_FLAGS \"\${CMAKE_CXX_FLAGS} -Wno-error -Wno-pedantic -Wno-sign-compare -Wno-sign-conversion\")"
-          find . -name "CMakeLists.txt" -exec sed -i "1i $RELAX_CXX" {} \;
+          # Memastikan Gradle tidak kebingungan mencari NDK
+          echo "" >> camera/build.gradle
+          echo "android { ndkVersion \"21.4.7075529\" }" >> camera/build.gradle
 
       - name: Mulai Kompilasi Android (Gradle)
         run: |
