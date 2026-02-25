@@ -16,15 +16,21 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
 
+      - name: Turunkan Versi NDK (Pakai r21e)
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21e
+
+      - name: Kunci Konfigurasi NDK
+        run: |
+          echo "ndk.dir=${{ steps.setup-ndk.outputs.ndk-path }}" > local.properties
+          echo "sdk.dir=$ANDROID_HOME" >> local.properties
+
       - name: Mulai Kompilasi Android (Gradle)
         run: |
           chmod +x gradlew
-          ./gradlew :camera:assembleDebug \
-            -Porg.gradle.jvmargs="-Xmx4096m" \
-            --stacktrace
-        env:
-          CFLAGS: "-Wno-error=deprecated-non-prototype -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=sign-conversion -Wno-error=conversion -Wno-error=pedantic"
-          CXXFLAGS: "-Wno-error=deprecated-non-prototype -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=sign-conversion -Wno-error=conversion -Wno-error=pedantic"
+          ./gradlew :camera:assembleDebug --stacktrace
 
       - name: Panen File .so
         run: |
