@@ -1,44 +1,22 @@
-name: Dapatkan File SO
+name: Intip Isi Folder
 on: [workflow_dispatch] 
 
 jobs:
-  build:
+  investigasi:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java (Untuk mesin Android)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Jalankan Build Android (Jika ada)
+      - name: Laporan Isi File
         run: |
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug || echo "Build log selesai. Melanjutkan pencarian file..."
-          else
-            echo "Tidak ada gradlew. Langsung mencari file .so bawaan..."
-          fi
-
-      - name: Sisir dan Kumpulkan Semua File .so
-        run: |
-          mkdir -p hasil_so
-          
-          # Cari semua file .so dan pertahankan nama folder arsitekturnya (arm64-v8a, dll)
-          find . -name "*.so" | while read file; do
-            arch_folder=$(basename $(dirname "$file"))
-            mkdir -p "hasil_so/$arch_folder"
-            cp "$file" "hasil_so/$arch_folder/"
-          done
-          
-          echo "Daftar file yang berhasil ditemukan:"
-          ls -R hasil_so
-
-      - name: Simpan Hasil (Upload Artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: file-so-kamera
-          path: hasil_so/
+          echo "1. DAFTAR FILE UTAMA:"
+          ls -la
+          echo "======================================="
+          echo "2. MENCARI SCRIPT BUILD:"
+          find . -name "*.sh"
+          find . -name "gradlew"
+          echo "======================================="
+          echo "3. MENCARI SISTEM C++:"
+          find . -name "CMakeLists.txt"
+          find . -name "Android.mk"
