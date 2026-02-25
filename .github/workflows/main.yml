@@ -19,12 +19,16 @@ jobs:
       - name: Mulai Kompilasi Android (Gradle)
         run: |
           chmod +x gradlew
-          ./gradlew :camera:assembleDebug --stacktrace
+          ./gradlew :camera:assembleDebug \
+            -Porg.gradle.jvmargs="-Xmx4096m" \
+            --stacktrace
+        env:
+          CFLAGS: "-Wno-error=deprecated-non-prototype -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types"
+          CXXFLAGS: "-Wno-error=deprecated-non-prototype -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types"
 
       - name: Panen File .so
         run: |
           mkdir -p panen_so
-
           find camera/build -name "*.so" -type f | while read file; do
             arch_folder=$(basename $(dirname "$file"))
             if [[ "$arch_folder" == "arm64-v8a" || "$arch_folder" == "armeabi-v7a" || "$arch_folder" == "x86" || "$arch_folder" == "x86_64" ]]; then
@@ -32,7 +36,6 @@ jobs:
               cp "$file" "panen_so/$arch_folder/"
             fi
           done
-
           echo "Hasil Panen File .so:"
           ls -R panen_so
 
